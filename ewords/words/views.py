@@ -1,40 +1,20 @@
-from django.shortcuts import render
-from rest_framework.response import Response
-from rest_framework.views import APIView
 from rest_framework.generics import get_object_or_404
-from .models import Word
+from .models import Word, User
 from .serializers import WordsSerializers
+from rest_framework.generics import GenericAPIView
+from rest_framework.mixins import ListModelMixin, CreateModelMixin
 
 
-class WordsView(APIView):
-    def get(self, request):
-        words = Word.objects.all()
-        serializer = WordsSerializers(words, many=True)
-        return Response({'words': serializer.data})
+class WordsView(ListModelMixin, GenericAPIView, CreateModelMixin):
+    queryset = Word.objects.all()
+    serializer_class = WordsSerializers
 
-    def post(self, request):
-        word = request.data.get('word')
-        serializer = WordsSerializers(data=word)
-        if serializer.is_valid(raise_exception=True):
-            word_saved = serializer.save()
-        message = f'Word {word_saved.rus_word} created successfully'
-        return Response({'success': message})
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
 
-    def put(self, request, pk):
-        print('start')
-        word = get_object_or_404(Word.objects.all(), pk=pk)
-        print(word)
-        data = request.data.get('word')
-        print(data)
-        serializer = WordsSerializers(instance=word, data=data, partial=True)
-        if serializer.is_valid(raise_exception=True):
-            word = serializer.save()
-        message = f'Word "{word.rus_word} updated successfully"'
-        return Response({'success': message})
+    def perform_create(self, serializer):
+        user = get_object_or_404(User, id=self.request.data.get('meta_user'))
+        return serializer.save(meta_user=user)
 
-    def delete(self, request, pk):
-        word = get_object_or_404(Word.objects.all(), pk=pk)
-        word_verbose = word.rus_word
-        word.delete()
-        message = f'Word "{word_verbose} deleted successfully"'
-        return Response({'success': message}, status=204)
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)

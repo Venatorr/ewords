@@ -41,9 +41,11 @@ INSTALLED_APPS = [
     'rest_framework',
     'words',
     'corsheaders',
+    'debug_toolbar',
 ]
 
 MIDDLEWARE = [
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -129,4 +131,8 @@ STATIC_URL = '/static/'
 
 CORS_ORIGIN_WHITELIST = [
     'http://localhost:4200',
+]
+
+INTERNAL_IPS = [
+    '127.0.0.1',
 ]
