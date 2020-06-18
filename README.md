@@ -9,3 +9,9 @@ ewords_venv\Scripts\deactivate.bat - деактивировать
 pip install -r requirements.txt
 3) Запускашь сервер (будет тут по дефолту - http://127.0.0.1:8000/):
 python manage.py runserver
+
+New features, upd 18.06.2020:
+1) Заходишь в виртуальное окружение
+2) Ставишь пакеты pip install -r requirements.txt
+(должны поставиться только недостающие, но хз))
+3) Вся инфа на главной странице
