@@ -1,12 +1,18 @@
-from .models import Word, Language
-from .serializers import WordsSerializers, LanguagesSerializers
-from rest_framework import viewsets, status
+from .models import Word, Language, User
+from .serializers import WordsSerializers, LanguagesSerializers, UserSerializers
+from rest_framework import viewsets, status, permissions
 from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.permissions import AllowAny
+from rest_framework_jwt.authentication import JSONWebTokenAuthentication
+from rest_framework_jwt.settings import api_settings
+from django.contrib.auth.hashers import make_password
 
 
 class WordsViewset(viewsets.ModelViewSet):
     queryset = Word.objects.all()
     serializer_class = WordsSerializers
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def get_queryset(self):
         user = self.request.user
@@ -35,3 +41,31 @@ class WordsViewset(viewsets.ModelViewSet):
 class LanguagesViewset(viewsets.ModelViewSet):
     queryset = Language.objects.all()
     serializer_class = LanguagesSerializers
+    # permission_classes = (permissions.IsAuthenticated, )
+
+
+class CreateUserAPIView(APIView):
+    permission_classes = (AllowAny, )
+
+    def get(self, request):  # в рабочей версии убрать get, он не нужен
+        users = User.objects.all()
+        serializer = UserSerializers(users, many=True)
+        return Response({'users': serializer.data})
+
+    def get_token(self, data):
+        user = User.objects.get(username=data['username'])
+        jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
+        jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
+        payload = jwt_payload_handler(user)
+        token = jwt_encode_handler(payload)
+        data['token'] = token
+        return data
+
+    def post(self, request):
+        user = request.data
+        user['password'] = make_password(user['password'])
+        serializer = UserSerializers(data=user)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        response = self.get_token(serializer.data)
+        return Response(response, status=status.HTTP_201_CREATED)

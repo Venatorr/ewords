@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Word, Language
+from .models import Word, Language, User
 
 
 class LanguageField(serializers.RelatedField):
@@ -18,7 +18,7 @@ class WordsSerializers(serializers.ModelSerializer):
         model = Word
         fields = ('id', 'meta_user', 'meta_add_date', 'rus_word',
                   'eng_word', 'transcription', 'picture', 'language')
-        read_only_fields = ('id', 'meta_add_date',)
+        read_only_fields = ('id', 'meta_add_date', )
 
 
 class LanguagesSerializers(serializers.ModelSerializer):
@@ -26,3 +26,13 @@ class LanguagesSerializers(serializers.ModelSerializer):
         model = Language
         fields = ('id', 'name')
         read_only_fields = ('id',)
+
+
+class UserSerializers(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'password')
+        read_only_fields = ('id',)
+        # для удобства тестирования пароль отображается, но затем надо будет раскомментировать
+        # следующую строку и оставить его write_only
+        # extra_kwargs = {'password': {'write_only': True}}
